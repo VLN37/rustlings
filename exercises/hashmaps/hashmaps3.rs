@@ -2,8 +2,8 @@
 
 // A list of scores (one per line) of a soccer match is given. Each line
 // is of the form :
-// <team_1_name>,<team_2_name>,<team_1_goals>,<team_2_goals>
-// Example: England,France,4,2 (England scored 4 goals, France 2).
+// name: // <team_1_name>,<team_2_name>,<team_1_goals>,<team_2_goals>
+//goals_score: // Example: England,France,4,2 (England scored 4 goalsgoals_conceded: , France 2).
 
 // You have to build a scores table containing the name of the team, goals
 // the team scored, and goals the team conceded. One approach to build
@@ -14,15 +14,24 @@
 
 // Execute `rustlings hint hashmaps3` or use the `hint` watch subcommand for a hint.
 
-// I AM NOT DONE
-
 use std::collections::HashMap;
 
 // A structure to store team name and its goal details.
+#[derive(Debug)]
 struct Team {
     name: String,
     goals_scored: u8,
     goals_conceded: u8,
+}
+
+impl Team {
+    fn new(name: String, goals_scored: u8, goals_conceded: u8) -> Team {
+        Team {
+            name,
+            goals_scored,
+            goals_conceded
+        }
+    }
 }
 
 fn build_scores_table(results: String) -> HashMap<String, Team> {
@@ -40,6 +49,15 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
         // will be the number of goals conceded from team_2, and similarly
         // goals scored by team_2 will be the number of goals conceded by
         // team_1.
+        scores.entry(team_1_name.to_string()).and_modify(|e|{
+            e.goals_scored += team_1_score;
+            e.goals_conceded += team_2_score;
+        }).or_insert(Team::new(team_1_name, team_1_score, team_2_score));
+
+        scores.entry(team_2_name.to_string()).and_modify(|e|{
+            e.goals_scored += team_2_score;
+            e.goals_conceded += team_1_score;
+        }).or_insert(Team::new(team_2_name, team_2_score, team_1_score));
     }
     scores
 }
@@ -63,6 +81,7 @@ mod tests {
 
         let mut keys: Vec<&String> = scores.keys().collect();
         keys.sort();
+        println!("{:?}", keys);
         assert_eq!(
             keys,
             vec!["England", "France", "Germany", "Italy", "Poland", "Spain"]
@@ -73,6 +92,7 @@ mod tests {
     fn validate_team_score_1() {
         let scores = build_scores_table(get_results());
         let team = scores.get("England").unwrap();
+        println!("{:?}", team);
         assert_eq!(team.goals_scored, 5);
         assert_eq!(team.goals_conceded, 4);
     }
@@ -81,6 +101,7 @@ mod tests {
     fn validate_team_score_2() {
         let scores = build_scores_table(get_results());
         let team = scores.get("Spain").unwrap();
+        println!("{:?}", team);
         assert_eq!(team.goals_scored, 0);
         assert_eq!(team.goals_conceded, 2);
     }
